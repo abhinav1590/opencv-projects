@@ -1,2 +1,2 @@
 
-python program for face recognition using open cv2 
+python programs using openCV and mediapipe
