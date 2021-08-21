@@ -61,7 +61,7 @@ def cal_angle(a, b, c):
     return int(angle)
 
 
-def spider_man(lmlist):
+def gesture_yo(lmlist):
 
     angle = []
     count = 4
@@ -81,7 +81,7 @@ def spider_man(lmlist):
         return False
 
 
-def fist(lmlist):
+def gesture_fist(lmlist):
 
     angle = []
     count = 4
@@ -112,10 +112,10 @@ while True:
 
     if len(lmlist) != 0:
 
-        if spider_man(lmlist):
-            state = "SPIDER MAN"
+        if gesture_yo(lmlist):
+            state = "YO"
 
-        elif fist(lmlist):
+        elif gesture_fist(lmlist):
             state = "FIST"
 
         else:
