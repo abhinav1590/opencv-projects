@@ -6,7 +6,7 @@ import numpy as np
 
 cap = cv2.VideoCapture(0)
 mhands = mp.solutions.hands
-hands = mhands.Hands(min_tracking_confidence=0.7, min_detection_confidence=0.7)
+hands = mhands.Hands(min_tracking_confidence=0.8, min_detection_confidence=0.8)
 mdraw = mp.solutions.drawing_utils
 ptime = 0
 state = None
@@ -44,8 +44,6 @@ def find_position(results):
     return lmlist
 
 
-
-
 def cal_angle(a, b, c):
     a = np.array(a)
     b = np.array(b)
@@ -61,63 +59,47 @@ def cal_angle(a, b, c):
     return int(angle)
 
 
-def gesture_yo(lmlist):
+def gesture_check(lmlist):
 
     angle = []
-    count = 4
-    for i in range(5):
-        if count != 20 and i != 4:
+    count = 5
+    position =[]
+    for i in range(4):
+        counter = 1
+        if count != 20:
+            while counter != 4:
+                pos = [lmlist[count][1], lmlist[count][2]]
+                position.append(pos)
+                count += 1
+                counter += 1
             count += 1
-            a = [lmlist[count][1], lmlist[count][2]]
-            count += 1
-            b = [lmlist[count][1], lmlist[count][2]]
-            count += 1
-            c = [lmlist[count][1], lmlist[count][2]]
-            count += 1
-            angle.append(cal_angle(c, b, a))
+            angle.append(cal_angle(position[0],position[1],position[2]))
+            position.clear()
     if (angle[0] and angle[1]) < 50 and (angle[2] and angle[3]) > 60:
-        return True
+        return 1
     else:
-        return False
-
-
-def gesture_fist(lmlist):
-
-    angle = []
-    count = 4
-    for i in range(5):
-        if count != 20 and i != 4:
-            count += 1
-            a = [lmlist[count][1], lmlist[count][2]]
-            count += 1
-            b = [lmlist[count][1], lmlist[count][2]]
-            count += 1
-            c = [lmlist[count][1], lmlist[count][2]]
-            count += 1
-            angle.append(cal_angle(c, b, a))
-
-    x = 0
-    for j in angle:
-        if j <= 50:
-            x += 1
-    if x == 4:
-        return True
+        x = 0
+        for j in angle:
+            if j <= 50:
+                x += 1
+        if x == 4:
+            return 2
 
 
 while True:
-    _, img = cap.read()
+    success, img = cap.read()
+    if success == False:
+        state = None
     results = detection(img, hands)
     draw_landmarks(img, results)
     lmlist = find_position(results)
 
     if len(lmlist) != 0:
 
-        if gesture_yo(lmlist):
-            state = "YO"
-
-        elif gesture_fist(lmlist):
-            state = "FIST"
-
+        if gesture_check(lmlist) == 1:
+            state = 'YOO'
+        elif gesture_check(lmlist) == 2:
+            state = 'FIST'
         else:
             state = None
 
@@ -125,7 +107,7 @@ while True:
     fps = 1/(ctime-ptime)
     ptime = ctime
 
-    cv2.putText(img, state, (10, 450), cv2.FONT_HERSHEY_SIMPLEX, 1, (255, 0, 255), 3)
+    cv2.putText(img,f'Gesture - { state } ', (10, 450), cv2.FONT_HERSHEY_SIMPLEX, 1, (255, 0, 255), 3)
     cv2.putText(img, str(int(fps)), (10, 70), cv2.FONT_ITALIC, 1, (0, 255, 255), 1)
     cv2.imshow('Hand Gestures', img)
     cv2.waitKey(1)
