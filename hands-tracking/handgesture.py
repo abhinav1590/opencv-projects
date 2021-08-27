@@ -26,8 +26,8 @@ def draw_landmarks(img, results):
         for lmhands in results.multi_hand_landmarks:
 
             mdraw.draw_landmarks(img, lmhands, mhands.HAND_CONNECTIONS,
-                                 mdraw.DrawingSpec((0, 0, 0), thickness=2, circle_radius=2),
-                                 mdraw.DrawingSpec((255, 255, 255), thickness=1))
+                            mdraw.DrawingSpec((0, 0, 0), thickness=2, circle_radius=2),
+                            mdraw.DrawingSpec((255, 255, 255), thickness=1))
 
 
 def find_position(results):
@@ -59,8 +59,9 @@ def cal_angle(a, b, c):
     return int(angle)
 
 
-def gesture_check(lmlist):
+def fingers_up_check(lmlist):
 
+    finger_check = []
     angle = []
     count = 5
     position =[]
@@ -75,14 +76,30 @@ def gesture_check(lmlist):
             count += 1
             angle.append(cal_angle(position[0],position[1],position[2]))
             position.clear()
-    if (angle[0] and angle[1]) < 50 and (angle[2] and angle[3]) > 60:
-        return 1
-    else:
-        x = 0
-        for j in angle:
-            if j <= 50:
-                x += 1
-        if x == 4:
+
+    for j in range(len(angle)):
+        if angle[j] < 50:
+            finger_check.append(1)
+        else:
+            finger_check.append(0)
+
+    return finger_check
+
+
+def gesture(finger_up):
+
+    c1 = 0
+    c2 = 0
+    if len(finger_up) != 0:
+        for i in finger_up:
+            if i == 1:
+                c1 += 1
+            elif i == 0:
+                c2 += 1
+
+        if  c1!=0 and c1 == c2:
+            return 1
+        elif c1 == 4:
             return 2
 
 
@@ -96,9 +113,11 @@ while True:
 
     if len(lmlist) != 0:
 
-        if gesture_check(lmlist) == 1:
+        finger_up = fingers_up_check(lmlist)
+
+        if gesture(finger_up) == 1:
             state = 'YOO'
-        elif gesture_check(lmlist) == 2:
+        elif gesture(finger_up) == 2:
             state = 'FIST'
         else:
             state = None
@@ -107,7 +126,7 @@ while True:
     fps = 1/(ctime-ptime)
     ptime = ctime
 
-    cv2.putText(img,f'Gesture - { state } ', (10, 450), cv2.FONT_HERSHEY_SIMPLEX, 1, (255, 0, 255), 3)
+    cv2.putText(img,f'Gesture - { state } ', (10, 450), cv2.FONT_HERSHEY_SIMPLEX, 1, (0, 255 ,0), 3)
     cv2.putText(img, str(int(fps)), (10, 70), cv2.FONT_ITALIC, 1, (0, 255, 255), 1)
     cv2.imshow('Hand Gestures', img)
     cv2.waitKey(1)
